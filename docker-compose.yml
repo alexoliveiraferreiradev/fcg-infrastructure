@@ -1,0 +1,26 @@
+version: '3.9'
+
+services:
+  fcg-db-central:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver-db
+    restart: always    
+    user: root
+    environment:
+      - MSSQL_SA_PASSWORD=Fcgclound2026!
+      - ACCEPT_EULA=Y
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql_db_fcg_central:/var/opt/mssql/data
+    networks:
+      - fcg-network
+
+volumes:
+  sql_db_fcg_central:
+
+networks:
+  fcg-network:
+    external: true
+  
+
