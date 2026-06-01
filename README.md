@@ -6,7 +6,7 @@ Repositório central responsável pela orquestração, configuração de contêi
 
 O ecossistema é composto por quatro microsserviços independentes, orquestrados via eventos:
 * **UsersAPI:** Cadastro e Autenticação (JWT).
-* **CatalogAPI:** Gestão de jogos e iniciação de compras (CQRS com EF Core + Dapper).
+* **CatalogAPI:** Gestão de jogos e iniciação de compras (CQRS com EF Core).
 * **PaymentsAPI:** Processamento de pagamentos.
 * **NotificationsAPI:** Envio de e-mails assíncronos.
 
