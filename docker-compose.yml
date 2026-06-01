@@ -1,0 +1,28 @@
+version: '3.9'
+
+services:
+  fcg-db-central:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver-db
+    restart: unless-stopped 
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${DB_SA_PASSWORD}
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql_db_fcg_central:/var/opt/mssql/data
+    networks:
+      - fcg-network
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P ${DB_SA_PASSWORD} -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  sql_db_fcg_central:
+
+networks:
+  fcg-network:
+    driver: bridge
