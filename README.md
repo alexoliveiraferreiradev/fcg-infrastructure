@@ -1,4 +1,4 @@
-# 🎮 FIAP Cloud Games - Infraestrutura e Orquestração
+#  FIAP Cloud Games - Infraestrutura e Orquestração
 
 Repositório central responsável pela orquestração, configuração de contêineres e deploy no Kubernetes para o ecossistema de microsserviços da FIAP Cloud Games.
 
