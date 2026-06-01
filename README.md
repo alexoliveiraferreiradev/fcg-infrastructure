@@ -11,7 +11,7 @@ O ecossistema é composto por quatro microsserviços independentes, orquestrados
 * **NotificationsAPI:** Envio de e-mails assíncronos.
 
 **Stack de Infraestrutura:**
-* **Mensageria:** RabbitMQ (ou Kafka) para comunicação assíncrona.
+* **Mensageria:** RabbitMQ para comunicação assíncrona.
 * **Cache:** Redis distribuído para alta performance.
 * **Banco de Dados:** SQL Server (Abordagem híbrida / CQRS).
 * **Orquestração:** Docker Compose (Local) e Kubernetes (Produção/Cluster Local).
