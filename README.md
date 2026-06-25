@@ -23,19 +23,19 @@ O sistema FCG foi decomposto de sua arquitetura monolítica original em **quatro
 A comunicação entre os serviços é realizada de forma assíncrona utilizando **RabbitMQ** como message broker para garantir resiliência e escalabilidade.
 
 ```mermaid
-seqdiagram
+sequenceDiagram
     autonumber
     %% Fluxo de Cadastro de Usuário
-    note over UsersAPI, NotificationsAPI: Fluxo de Cadastro de Usuário
+    Note over UsersAPI, NotificationsAPI: Fluxo de Cadastro de Usuário
     UsersAPI->>RabbitMQ: Publica UserCreatedEvent
     RabbitMQ->>NotificationsAPI: Consome UserCreatedEvent
-    note right of NotificationsAPI: Envia (Simula) e-mail de Boas-Vindas
+    Note right of NotificationsAPI: Envia (Simula) e-mail de Boas-Vindas
 
     %% Fluxo de Compra de Jogo
-    note over CatalogAPI, NotificationsAPI: Fluxo de Compra de Jogo
+    Note over CatalogAPI, NotificationsAPI: Fluxo de Compra de Jogo
     CatalogAPI->>RabbitMQ: Publica OrderPlacedEvent (UserId, GameId, Price)
     RabbitMQ->>PaymentsAPI: Consome OrderPlacedEvent
-    note right of PaymentsAPI: Simula processamento de pagamento
+    Note right of PaymentsAPI: Simula processamento de pagamento
     PaymentsAPI->>RabbitMQ: Publica PaymentProcessedEvent (Approved/Rejected)
     
     par Caso Aprovado
