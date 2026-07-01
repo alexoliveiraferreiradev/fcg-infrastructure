@@ -34,10 +34,29 @@ services:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
     restart: unless-stopped
+  redis:
+    image: redis:latest
+    container_name: redis-fcg
+    restart: unless-stopped 
+    ports:
+      - "6379:6379"
+    networks:
+      - fcg-network
+    volumes:
+      - redis_data:/var/lib/redis
+  redisinsight:
+    image: redis/redisinsight:latest
+    container_name: redisinsight-fcg
+    restart: unless-stopped 
+    ports:
+      - "8001:5540"
+    networks:
+      - fcg-network
 
 volumes:
   sql_db_fcg_central:
   rabbitmq_data:
+  redis_data:
 
 networks:
   fcg-network:
