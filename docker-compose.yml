@@ -52,6 +52,44 @@ services:
       - "8001:5540"
     networks:
       - fcg-network
+  users-api:
+    image: alexoliverdev/fcg-usuario-api:latest
+    container_name: fcg-users-api
+    ports:
+      - "8081:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__Redis=redis:6379
+      - MessageBroker__Host=rabbitmq
+      - ConnectionStrings__UserConnection=Server=fcg-db-central;Database=Fcg_Users;User Id=sa; Password=${DB_SA_PASSWORD};TrustServerCertificate=True;
+      - JwtSettings__SecretKey=${JWT_SECRET}  
+    depends_on:
+      fcg-db-central:
+        condition: service_healthy 
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+    networks:
+      - fcg-network
+  notifications-api:
+    image: alexoliverdev/fcg-notification-api:latest
+    container_name: fcg-notifications-api
+    ports:
+      - "8082:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__Redis=redis:6379
+      - MessageBroker__Host=rabbitmq
+      - UserApi__BaseUrl=http://users-api:8080      
+    depends_on:
+      - rabbitmq
+      - redis
+      - users-api
+    networks:
+      - fcg-network
+       
+
 
 volumes:
   sql_db_fcg_central:
