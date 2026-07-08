@@ -52,6 +52,18 @@ services:
       - "8001:5540"
     networks:
       - fcg-network
+  users-db-migration:
+    image: alexoliverdev/fcg-usuario-api:latest
+    container_name: fcg-users-db-migration
+    depends_on:
+      fcg-db-central:
+        condition: service_healthy
+    environment:
+      - ConnectionStrings__UserConnection=Server=fcg-db-central;Database=Fcg_Users;User Id=sa; Password=${DB_SA_PASSWORD};TrustServerCertificate=True;
+    entrypoint: ["./efbundle", "--connection", "Server=fcg-db-central;Database=Fcg_Users;User Id=sa; Password=${DB_SA_PASSWORD};TrustServerCertificate=True;"]
+    networks:
+      - fcg-network
+
   users-api:
     image: alexoliverdev/fcg-usuario-api:latest
     container_name: fcg-users-api
@@ -70,8 +82,11 @@ services:
         condition: service_started
       rabbitmq:
         condition: service_started
+      users-db-migration:
+        condition: service_completed_successfully
     networks:
       - fcg-network
+
   notifications-api:
     image: alexoliverdev/fcg-notification-api:latest
     container_name: fcg-notifications-api
@@ -88,7 +103,75 @@ services:
       - users-api
     networks:
       - fcg-network
-       
+
+  payments-db-migration:
+    image: alexoliverdev/fcg-payments-api:latest
+    container_name: fcg-payments-db-migration
+    depends_on:
+      fcg-db-central:
+        condition: service_healthy
+    environment:
+      - ConnectionStrings__PaymentConnection=Server=fcg-db-central;Database=Fcg_Payments;User Id=sa; Password=${DB_SA_PASSWORD};TrustServerCertificate=True;
+    entrypoint: ["./efbundle", "--connection", "Server=fcg-db-central;Database=Fcg_Payments;User Id=sa; Password=${DB_SA_PASSWORD};TrustServerCertificate=True;"]
+    networks:
+      - fcg-network
+
+  payments-api:
+    image: alexoliverdev/fcg-payments-api:latest  
+    container_name: fcg-payments-api
+    ports:
+      - "8083:8080"
+    environment:
+     - ASPNETCORE_ENVIRONMENT=Development
+     - MessageBroker__Host=rabbitmq
+     - ConnectionStrings__PaymentConnection=Server=fcg-db-central;Database=Fcg_Payments;User Id=sa; Password=${DB_SA_PASSWORD};TrustServerCertificate=True;  
+    depends_on:
+      fcg-db-central:
+        condition: service_healthy 
+      rabbitmq:
+        condition: service_started
+      catalog-api:
+        condition: service_started
+      payments-db-migration:
+        condition: service_completed_successfully
+    networks:
+      - fcg-network
+
+  catalog-db-migration:
+    image: alexoliverdev/fcg-catalog-api:latest
+    container_name: fcg-catalog-db-migration
+    depends_on:
+      fcg-db-central:
+        condition: service_healthy
+    environment:
+      - ConnectionStrings__CatalogConnection=Server=fcg-db-central;Database=Fcg_Catalogs;User Id=sa; Password=${DB_SA_PASSWORD};TrustServerCertificate=True;
+    entrypoint: ["./efbundle", "--connection", "Server=fcg-db-central;Database=Fcg_Catalogs;User Id=sa; Password=${DB_SA_PASSWORD};TrustServerCertificate=True;"]
+    networks:
+      - fcg-network
+
+  catalog-api:
+    image: alexoliverdev/fcg-catalog-api:latest
+    container_name: fcg-catalog-api
+    ports:
+      - "8084:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - MessageBroker__Host=rabbitmq
+      - ConnectionStrings__CatalogConnection=Server=fcg-db-central;Database=Fcg_Catalogs;User Id=sa; Password=${DB_SA_PASSWORD};TrustServerCertificate=True;  
+      - JwtSettings__SecretKey=${JWT_SECRET}  
+    depends_on:
+      fcg-db-central:
+        condition: service_healthy 
+      rabbitmq:
+        condition: service_started
+      redis:
+        condition: service_started
+      users-api:
+        condition: service_started
+      catalog-db-migration:
+        condition: service_completed_successfully
+    networks:
+      - fcg-network
 
 
 volumes:
