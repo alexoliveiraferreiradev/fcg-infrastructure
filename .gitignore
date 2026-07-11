@@ -1,0 +1,12 @@
+# Created by https://www.toptal.com/developers/gitignore/api/dotenv
+# Edit at https://www.toptal.com/developers/gitignore?templates=dotenv
+
+# Custom rules
+.env
+
+# Logs do sistema
+logs/
+*.log
+
+
+# End of https://www.toptal.com/developers/gitignore/api/dotenv
