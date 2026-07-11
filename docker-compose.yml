@@ -8,7 +8,7 @@ services:
     user: root
     environment:
       - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=${DB_SA_PASSWORD}
+      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD}
     ports:
       - "1433:1433"
     volumes:
@@ -16,7 +16,7 @@ services:
     networks:
       - fcg-network
     healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P ${DB_SA_PASSWORD} -C -Q 'SELECT 1' || exit 1"]
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P ${MSSQL_SA_PASSWORD} -C -Q 'SELECT 1' || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -60,8 +60,8 @@ services:
       fcg-db-central:
         condition: service_healthy
     environment:
-      - ConnectionStrings__UserConnection=Server=fcg-db-central;Database=Fcg_Users;User Id=sa; Password=${DB_SA_PASSWORD};TrustServerCertificate=True;
-    entrypoint: ["./efbundle", "--connection", "Server=fcg-db-central;Database=Fcg_Users;User Id=sa; Password=${DB_SA_PASSWORD};TrustServerCertificate=True;"]
+      - ConnectionStrings__UserConnection=Server=fcg-db-central;Database=Fcg_Users;User Id=sa; Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;
+    entrypoint: ["./efbundle", "--connection", "Server=fcg-db-central;Database=Fcg_Users;User Id=sa; Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;"]
     networks:
       - fcg-network
 
@@ -74,7 +74,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__Redis=redis:6379
       - ConnectionStrings__RabbitMq=rabbitmq
-      - ConnectionStrings__UserConnection=Server=fcg-db-central;Database=Fcg_Users;User Id=sa; Password=${DB_SA_PASSWORD};TrustServerCertificate=True;
+      - ConnectionStrings__UserConnection=Server=fcg-db-central;Database=Fcg_Users;User Id=sa; Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;
       - JwtSettings__Secret=${JWT_SECRET}  
     depends_on:
       fcg-db-central:
@@ -111,8 +111,8 @@ services:
       fcg-db-central:
         condition: service_healthy
     environment:
-      - ConnectionStrings__PaymentConnection=Server=fcg-db-central;Database=Fcg_Payments;User Id=sa; Password=${DB_SA_PASSWORD};TrustServerCertificate=True;
-    entrypoint: ["./efbundle", "--connection", "Server=fcg-db-central;Database=Fcg_Payments;User Id=sa; Password=${DB_SA_PASSWORD};TrustServerCertificate=True;"]
+      - ConnectionStrings__PaymentConnection=Server=fcg-db-central;Database=Fcg_Payments;User Id=sa; Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;
+    entrypoint: ["./efbundle", "--connection", "Server=fcg-db-central;Database=Fcg_Payments;User Id=sa; Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;"]
     networks:
       - fcg-network
 
@@ -124,7 +124,7 @@ services:
     environment:
      - ASPNETCORE_ENVIRONMENT=Development
      - ConnectionStrings__RabbitMq=rabbitmq
-     - ConnectionStrings__PaymentConnection=Server=fcg-db-central;Database=Fcg_Payments;User Id=sa; Password=${DB_SA_PASSWORD};TrustServerCertificate=True;  
+     - ConnectionStrings__PaymentConnection=Server=fcg-db-central;Database=Fcg_Payments;User Id=sa; Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;  
     depends_on:
       fcg-db-central:
         condition: service_healthy 
@@ -144,8 +144,8 @@ services:
       fcg-db-central:
         condition: service_healthy
     environment:
-      - ConnectionStrings__CatalogConnection=Server=fcg-db-central;Database=Fcg_Catalogs;User Id=sa; Password=${DB_SA_PASSWORD};TrustServerCertificate=True;
-    entrypoint: ["./efbundle", "--connection", "Server=fcg-db-central;Database=Fcg_Catalogs;User Id=sa; Password=${DB_SA_PASSWORD};TrustServerCertificate=True;"]
+      - ConnectionStrings__CatalogConnection=Server=fcg-db-central;Database=Fcg_Catalogs;User Id=sa; Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;
+    entrypoint: ["./efbundle", "--connection", "Server=fcg-db-central;Database=Fcg_Catalogs;User Id=sa; Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;"]
     networks:
       - fcg-network
 
@@ -157,7 +157,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__RabbitMq=rabbitmq
-      - ConnectionStrings__CatalogConnection=Server=fcg-db-central;Database=Fcg_Catalogs;User Id=sa; Password=${DB_SA_PASSWORD};TrustServerCertificate=True;  
+      - ConnectionStrings__CatalogConnection=Server=fcg-db-central;Database=Fcg_Catalogs;User Id=sa; Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;  
       - JwtSettings__Secret=${JWT_SECRET}  
     depends_on:
       fcg-db-central:
