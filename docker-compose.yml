@@ -35,7 +35,8 @@ services:
       RABBITMQ_DEFAULT_PASS: guest
     restart: unless-stopped
   redis:
-    image: redis:latest
+    image: redis:7-alpine  
+    command: redis-server --appendonly yes --requirepass ${REDIS_SA_PASSWORD}
     container_name: redis-fcg
     restart: unless-stopped 
     ports:
@@ -74,7 +75,7 @@ services:
       - ConnectionStrings__Redis=redis:6379
       - ConnectionStrings__RabbitMq=rabbitmq
       - ConnectionStrings__UserConnection=Server=fcg-db-central;Database=Fcg_Users;User Id=sa; Password=${DB_SA_PASSWORD};TrustServerCertificate=True;
-      - JwtSettings__SecretKey=${JWT_SECRET}  
+      - JwtSettings__Secret=${JWT_SECRET}  
     depends_on:
       fcg-db-central:
         condition: service_healthy 
@@ -95,8 +96,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__Redis=redis:6379
-      - ConnectionStrings__RabbitMq=rabbitmq
-      - UserApi__BaseUrl=http://users-api:8080      
+      - ConnectionStrings__RabbitMq=rabbitmq    
     depends_on:
       - rabbitmq
       - redis
@@ -158,7 +158,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__RabbitMq=rabbitmq
       - ConnectionStrings__CatalogConnection=Server=fcg-db-central;Database=Fcg_Catalogs;User Id=sa; Password=${DB_SA_PASSWORD};TrustServerCertificate=True;  
-      - JwtSettings__SecretKey=${JWT_SECRET}  
+      - JwtSettings__Secret=${JWT_SECRET}  
     depends_on:
       fcg-db-central:
         condition: service_healthy 
