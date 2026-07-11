@@ -104,6 +104,9 @@ O arquivo `docker-compose.yml` deste repositório de orquestração está config
     ```
     Todos os serviços principais devem estar listados como `running` (ou `healthy` para o banco de dados).
 
+    > [!TIP]
+    > O Docker Compose gerencia automaticamente a ordem de inicialização de todos os contêineres utilizando Health Checks (`depends_on` com `condition: service_healthy` ou `service_completed_successfully`), garantindo que a infraestrutura básica esteja ativa e que as migrações de banco de dados tenham concluído com sucesso antes de iniciar os servidores das APIs.
+
 ### 🖥️ Mapeamento de Portas e Serviços Locais (Docker)
 
 Uma vez inicializada a aplicação via Docker Compose, você poderá acessar os microsserviços e painéis nas seguintes portas locais:
@@ -168,6 +171,10 @@ cd ../fcg-notifications-api
 kubectl apply -f k8s/
 ```
 
+> [!IMPORTANT]
+> **Execução Automatizada de Migrações no Kubernetes:**
+> Como o SQL Server subirá inicialmente vazio no cluster, a criação de esquemas e o seeding de dados iniciais são gerenciados de forma totalmente automatizada no Kubernetes. Os manifestos de implantação das APIs (`Users`, `Catalog`, `Payments`) possuem **Init Containers** (`initContainers`) configurados com os bundles de migração do Entity Framework Core (`efbundle`). Quando o deployment de um microsserviço é aplicado, o Kubernetes executa a migração correspondente em primeiro plano e, somente após seu término bem-sucedido, inicializa o contêiner principal da API HTTP. Isso garante integridade do banco sem necessidade de intervenção humana.
+
 ---
 
 ### Passo 3: Monitorar e Validar a Implantação
@@ -190,12 +197,24 @@ kubectl get secrets
 
 ### Passo 4: Acessar a Aplicação no Cluster Local
 
-Em caso de serviços cluster onde é **ClusterIP** e tem página de visualização, como o RedisInsight e o RabbitMq, será necessário realizar 
-o port-forward da porta desejada:
+Para testes e avaliação das APIs expostas externamente:
+- **`svc-fcg-users-api` (Users API)** e **`svc-fcg-catalog-api` (Catalog API)**: São do tipo **NodePort**, expostos fisicamente nas portas **`30000`** e **`30001`** respectivamente. Podem ser acessados diretamente através dos links:
+  - [http://localhost:30000/swagger](http://localhost:30000/swagger) (Users API)
+  - [http://localhost:30001/swagger](http://localhost:30001/swagger) (Catalog API)
+  - *Se estiver rodando com o **Minikube**, obtenha a URL de acesso NodePort através dos comandos:*
+    ```bash
+    minikube service svc-fcg-users-api --url
+    minikube service svc-fcg-catalog-api --url
+    ```
+- **`svc-payment-service` (Payments API)** e **`svc-fcg-notification-api` (Notifications API)**: São do tipo **ClusterIP**. Como estes serviços atuam como processadores em segundo plano consumindo filas assíncronas do RabbitMQ e **não possuem interfaces gráficas (Swagger)**, eles operam apenas internamente no cluster e **não necessitam de port-forward** para validação.
 
-
+> [!NOTE]
+> Para visualizar painéis de infraestrutura interna do tipo **ClusterIP** que possuem interface gráfica (como console de administração do RabbitMQ e painel do RedisInsight), execute os comandos de port-forward abaixo:
 > ```bash
+> # Acesso ao console do RabbitMQ (http://localhost:15672)
 > kubectl port-forward svc/rabbitmq-service 15672:15672
+> 
+> # Acesso ao painel do RedisInsight (http://localhost:8001)
 > kubectl port-forward svc/redis-service 8001:5540
 > ```
 
