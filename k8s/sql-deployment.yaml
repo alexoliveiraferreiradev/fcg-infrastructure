@@ -20,22 +20,22 @@ spec:
         env:
           - name: ACCEPT_EULA
             value: "Y"
-          - name: SQL_HOST
+          - name: K8S_SQL_HOST
             valueFrom:
               configMapKeyRef:
                 name: sql-config
                 key: SQL_HOST
-          - name: SQL_PORT
+          - name: K8S_SQL_PORT
             valueFrom:
               configMapKeyRef:
                 name: sql-config
                 key: SQL_PORT
-          - name: DB_USER
+          - name: K8S_DB_USER
             valueFrom:
               secretKeyRef:
                 name: sql-opaque
                 key: sa_user
-          - name: MSSQL_SA_PASSWORD
+          - name: K8S_MSSQL_SA_PASSWORD
             valueFrom:
               secretKeyRef:
                 name: sql-opaque

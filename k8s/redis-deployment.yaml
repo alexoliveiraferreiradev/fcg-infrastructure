@@ -42,17 +42,17 @@ spec:
         ports:
           - containerPort: 5540 
         env:
-          - name: REDIS_HOST
+          - name: K8S_REDIS_HOST
             valueFrom:
               configMapKeyRef:
                 name: redis-config
                 key: REDIS_HOST
-          - name: REDIS_PORT
+          - name: K8S_REDIS_PORT
             valueFrom:
               configMapKeyRef:
                 name: redis-config
                 key: REDIS_PORT
-          - name: REDIS_INSTANCE
+          - name: K8S_REDIS_INSTANCE
             valueFrom:
               configMapKeyRef:
                 name: redis-config

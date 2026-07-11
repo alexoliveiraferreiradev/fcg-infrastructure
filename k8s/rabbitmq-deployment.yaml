@@ -19,27 +19,27 @@ spec:
           - containerPort: 5672
           - containerPort: 15672
         env:
-          - name: RABBITMQ_HOST
+          - name: K8S_RABBITMQ_HOST
             valueFrom:
               configMapKeyRef:
                 name: rabbitmq-config
                 key: RABBITMQ_HOST
-          - name: RABBITMQ_PORT
+          - name: K8S_RABBITMQ_PORT
             valueFrom:
               configMapKeyRef:
                 name: rabbitmq-config
                 key: RABBITMQ_PORT
-          - name: RABBITMQ_MAN_PORT
+          - name: K8S_RABBITMQ_MAN_PORT
             valueFrom:
               configMapKeyRef:
                 name: rabbitmq-config
                 key: RABBITMQ_MAN_PORT
-          - name: RABBITMQ_DEFAULT_USER
+          - name: K8S_RABBITMQ_DEFAULT_USER
             valueFrom:
               secretKeyRef:
                 name: rabbitmq-opaque
                 key: rabbit_user
-          - name: RABBITMQ_DEFAULT_PASS
+          - name: K8S_RABBITMQ_DEFAULT_PASS
             valueFrom:
               secretKeyRef:
                 name: rabbitmq-opaque
