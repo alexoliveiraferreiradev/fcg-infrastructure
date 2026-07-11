@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fcg-db-central
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fcg-db-central
+  template:
+    metadata:
+      labels:
+        app: fcg-db-central
+    spec:
+      containers:
+      - name: c-sqlserver-db
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        ports:
+          - containerPort: 1433
+        env:
+          - name: ACCEPT_EULA
+            value: "Y"
+          - name: SQL_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: sql-config
+                key: SQL_HOST
+          - name: SQL_PORT
+            valueFrom:
+              configMapKeyRef:
+                name: sql-config
+                key: SQL_PORT
+          - name: DB_USER
+            valueFrom:
+              secretKeyRef:
+                name: sql-opaque
+                key: sa_user
+          - name: MSSQL_SA_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: sql-opaque
+                key: sa_password        
+        livenessProbe:
+          tcpSocket:
+            port: 1433
+          initialDelaySeconds: 20
+          periodSeconds: 15
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -Q "SELECT 1" -b -o /dev/null
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+        volumeMounts:
+          - name: sql-storage
+            mountPath: /var/lib/sql 
+      volumes:
+        - name: sql-storage
+          persistentVolumeClaim:
+            claimName: sql-data-pvc
+
+        

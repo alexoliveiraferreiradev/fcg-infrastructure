@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sql-config
+data:
+  SQL_HOST: sql-service
+  SQL_PORT: "1433"
