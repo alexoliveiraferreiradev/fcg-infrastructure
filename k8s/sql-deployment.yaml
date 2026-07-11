@@ -35,7 +35,7 @@ spec:
               secretKeyRef:
                 name: sql-opaque
                 key: sa_user
-          - name: K8S_MSSQL_SA_PASSWORD
+          - name: MSSQL_SA_PASSWORD
             valueFrom:
               secretKeyRef:
                 name: sql-opaque
