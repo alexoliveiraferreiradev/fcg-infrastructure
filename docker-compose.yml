@@ -95,12 +95,17 @@ services:
       - "8082:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - RabbitMqQueues__NotificationUserCreatedQueue=notifications-user-created
+      - RabbitMqQueues__NotificationPaymentFailedQueue=notifications-payment-failed
+      - RabbitMqQueues__NotificationPaymentProcessedQueue=notifications-payment-processed
+      - RabbitMqQueues__NotificationDeliveryFailedQueue=notification-delivery-failed
       - ConnectionStrings__Redis=redis:6379
       - ConnectionStrings__RabbitMq=rabbitmq    
     depends_on:
-      - rabbitmq
-      - redis
-      - users-api
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
     networks:
       - fcg-network
 
@@ -123,6 +128,8 @@ services:
       - "8083:8080"
     environment:
      - ASPNETCORE_ENVIRONMENT=Development
+     - RabbitMqQueues__PaymentOrderQueue=payment-order-queue
+     - RabbitMqQueues__PaymentDeliveryFailedQueue=payment-delivery-failed-queue
      - ConnectionStrings__RabbitMq=rabbitmq
      - ConnectionStrings__PaymentConnection=Server=fcg-db-central;Database=Fcg_Payments;User Id=sa; Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;  
     depends_on:
@@ -156,6 +163,8 @@ services:
       - "8084:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - RabbitMqQueues__CatalogPaymentFailedQueue=catalog-payment-failed-queue
+      - RabbitMqQueues__CatalogPaymentProcessedQueue=catalog-payment-processed-queue
       - ConnectionStrings__RabbitMq=rabbitmq
       - ConnectionStrings__CatalogConnection=Server=fcg-db-central;Database=Fcg_Catalogs;User Id=sa; Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;  
       - JwtSettings__Secret=${JWT_SECRET}  
