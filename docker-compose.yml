@@ -1,4 +1,4 @@
-version: '3.9'
+version: '3.8'
 
 services:
   fcg-db-central:
@@ -99,12 +99,13 @@ services:
       - RabbitMqQueues__NotificationPaymentFailedQueue=notifications-payment-failed
       - RabbitMqQueues__NotificationPaymentProcessedQueue=notifications-payment-processed
       - RabbitMqQueues__NotificationDeliveryFailedQueue=notification-delivery-failed
-      - ConnectionStrings__Redis=redis:6379
+      - Redis__Configuration=redis:6379,password=${REDIS_SA_PASSWORD},abortConnect=false
+      - Redis__InstanceName="FiapCloudGames:"
       - ConnectionStrings__RabbitMq=rabbitmq    
     depends_on:
       redis:
         condition: service_started
-      rabbitmq:
+      users-api:
         condition: service_started
     networks:
       - fcg-network
@@ -168,6 +169,8 @@ services:
       - ConnectionStrings__RabbitMq=rabbitmq
       - ConnectionStrings__CatalogConnection=Server=fcg-db-central;Database=Fcg_Catalogs;User Id=sa; Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;  
       - JwtSettings__Secret=${JWT_SECRET}  
+      - Redis__Configuration=redis:6379,password=${REDIS_SA_PASSWORD},abortConnect=false
+      - Redis__InstanceName="FiapCloudGames:"
     depends_on:
       fcg-db-central:
         condition: service_healthy 
