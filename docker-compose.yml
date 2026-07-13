@@ -44,7 +44,7 @@ services:
     networks:
       - fcg-network
     volumes:
-      - redis_data:/var/lib/redis
+     - redis_data:/data
   redisinsight:
     image: redis/redisinsight:latest
     container_name: redisinsight-fcg
@@ -60,7 +60,11 @@ services:
       fcg-db-central:
         condition: service_healthy
     environment:
-      - ConnectionStrings__UserConnection=Server=fcg-db-central;Database=Fcg_Users;User Id=sa; Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;
+      - DatabaseSettings__Host=fcg-db-central
+      - DatabaseSettings__Port=1433
+      - DatabaseSettings__DatabaseName=Fcg_Users
+      - DatabaseSettings__Username=sa
+      - DatabaseSettings__Password=${MSSQL_SA_PASSWORD}
     entrypoint: ["./efbundle", "--connection", "Server=fcg-db-central;Database=Fcg_Users;User Id=sa; Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;"]
     networks:
       - fcg-network
@@ -72,8 +76,15 @@ services:
       - "8081:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__RabbitMq=rabbitmq
-      - ConnectionStrings__UserConnection=Server=fcg-db-central;Database=Fcg_Users;User Id=sa; Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;
+      - DatabaseSettings__Host=fcg-db-central
+      - DatabaseSettings__Port=1433
+      - DatabaseSettings__DatabaseName=Fcg_Users
+      - DatabaseSettings__Username=sa
+      - DatabaseSettings__Password=${MSSQL_SA_PASSWORD}
+      - RabbitMqSettings__Host=rabbitmq
+      - RabbitMqSettings__Port=5672
+      - RabbitMqSettings__Username=guest
+      - RabbitMqSettings__Password=guest
       - JwtSettings__Secret=${JWT_SECRET}  
     depends_on:
       fcg-db-central:
@@ -98,9 +109,15 @@ services:
       - RabbitMqQueues__NotificationPaymentFailedQueue=notifications-payment-failed
       - RabbitMqQueues__NotificationPaymentProcessedQueue=notifications-payment-processed
       - RabbitMqQueues__NotificationDeliveryFailedQueue=notification-delivery-failed
-      - Redis__Configuration=redis:6379,password=${REDIS_SA_PASSWORD},abortConnect=false
+      - RabbitMqQueues__Host=rabbitmq
+      - RabbitMqQueues__Port=5672
+      - RabbitMqQueues__Username=guest
+      - RabbitMqQueues__Password=guest
+      - Redis__Host=redis
+      - Redis__Port=6379
+      - Redis__Password=${REDIS_SA_PASSWORD}
       - "Redis__InstanceName=FiapCloudGames:"
-      - ConnectionStrings__RabbitMq=rabbitmq    
+      - MASSTRANSIT_USAGE_TELEMETRY=false
     depends_on:
       redis:
         condition: service_started
@@ -116,7 +133,11 @@ services:
       fcg-db-central:
         condition: service_healthy
     environment:
-      - ConnectionStrings__PaymentConnection=Server=fcg-db-central;Database=Fcg_Payments;User Id=sa; Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;
+      - DatabaseSettings__Host=fcg-db-central
+      - DatabaseSettings__Port=1433
+      - DatabaseSettings__DatabaseName=Fcg_Payments
+      - DatabaseSettings__Username=sa
+      - DatabaseSettings__Password=${MSSQL_SA_PASSWORD}
     entrypoint: ["./efbundle", "--connection", "Server=fcg-db-central;Database=Fcg_Payments;User Id=sa; Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;"]
     networks:
       - fcg-network
@@ -128,10 +149,18 @@ services:
       - "8083:8080"
     environment:
      - ASPNETCORE_ENVIRONMENT=Development
-     - RabbitMqQueues__PaymentOrderQueue=payment-order-queue
-     - RabbitMqQueues__PaymentDeliveryFailedQueue=payment-delivery-failed-queue
-     - ConnectionStrings__RabbitMq=rabbitmq
-     - ConnectionStrings__PaymentConnection=Server=fcg-db-central;Database=Fcg_Payments;User Id=sa; Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;  
+     - RabbitMqSettings__Host=rabbitmq
+     - RabbitMqSettings__Port=5672
+     - RabbitMqSettings__Username=guest
+     - RabbitMqSettings__Password=guest
+     - RabbitMqSettings__PaymentOrderQueue=payment-order-queue
+     - RabbitMqSettings__PaymentDeliveryFailedQueue=payment-delivery-failed-queue
+     - DatabaseSettings__Host=fcg-db-central
+     - DatabaseSettings__Port=1433
+     - DatabaseSettings__DatabaseName=Fcg_Payments
+     - DatabaseSettings__Username=sa
+     - DatabaseSettings__Password=${MSSQL_SA_PASSWORD}
+     - MASSTRANSIT_USAGE_TELEMETRY=false 
     depends_on:
       fcg-db-central:
         condition: service_healthy 
@@ -151,7 +180,11 @@ services:
       fcg-db-central:
         condition: service_healthy
     environment:
-      - ConnectionStrings__CatalogConnection=Server=fcg-db-central;Database=Fcg_Catalogs;User Id=sa; Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;
+      - DatabaseSettings__Host=fcg-db-central
+      - DatabaseSettings__Port=1433
+      - DatabaseSettings__DatabaseName=Fcg_Catalogs
+      - DatabaseSettings__Username=sa
+      - DatabaseSettings__Password=${MSSQL_SA_PASSWORD}
     entrypoint: ["./efbundle", "--connection", "Server=fcg-db-central;Database=Fcg_Catalogs;User Id=sa; Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;"]
     networks:
       - fcg-network
@@ -163,12 +196,21 @@ services:
       - "8084:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - RabbitMqQueues__CatalogPaymentFailedQueue=catalog-payment-failed-queue
-      - RabbitMqQueues__CatalogPaymentProcessedQueue=catalog-payment-processed-queue
-      - ConnectionStrings__RabbitMq=rabbitmq
-      - ConnectionStrings__CatalogConnection=Server=fcg-db-central;Database=Fcg_Catalogs;User Id=sa; Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;  
+      - RabbitMqSettings__Host=rabbitmq
+      - RabbitMqSettings__Port=5672
+      - RabbitMqSettings__Username=guest
+      - RabbitMqSettings__Password=guest
+      - RabbitMqSettings__CatalogPaymentFailedQueue=catalog-payment-failed-queue
+      - RabbitMqSettings__CatalogPaymentProcessedQueue=catalog-payment-processed-queue
+      - DatabaseSettings__Host=fcg-db-central
+      - DatabaseSettings__Port=1433
+      - DatabaseSettings__DatabaseName=Fcg_Catalogs
+      - DatabaseSettings__Username=sa
+      - DatabaseSettings__Password=${MSSQL_SA_PASSWORD}
       - JwtSettings__Secret=${JWT_SECRET}  
-      - Redis__Configuration=redis:6379,password=${REDIS_SA_PASSWORD},abortConnect=false
+      - Redis__Host=redis
+      - Redis__Port=6379
+      - Redis__Password=${REDIS_SA_PASSWORD}
       - "Redis__InstanceName=FiapCloudGames:"
     depends_on:
       fcg-db-central:
