@@ -72,7 +72,6 @@ services:
       - "8081:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__Redis=redis:6379
       - ConnectionStrings__RabbitMq=rabbitmq
       - ConnectionStrings__UserConnection=Server=fcg-db-central;Database=Fcg_Users;User Id=sa; Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;
       - JwtSettings__Secret=${JWT_SECRET}  
@@ -100,7 +99,7 @@ services:
       - RabbitMqQueues__NotificationPaymentProcessedQueue=notifications-payment-processed
       - RabbitMqQueues__NotificationDeliveryFailedQueue=notification-delivery-failed
       - Redis__Configuration=redis:6379,password=${REDIS_SA_PASSWORD},abortConnect=false
-      - Redis__InstanceName="FiapCloudGames:"
+      - "Redis__InstanceName=FiapCloudGames:"
       - ConnectionStrings__RabbitMq=rabbitmq    
     depends_on:
       redis:
@@ -170,7 +169,7 @@ services:
       - ConnectionStrings__CatalogConnection=Server=fcg-db-central;Database=Fcg_Catalogs;User Id=sa; Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;  
       - JwtSettings__Secret=${JWT_SECRET}  
       - Redis__Configuration=redis:6379,password=${REDIS_SA_PASSWORD},abortConnect=false
-      - Redis__InstanceName="FiapCloudGames:"
+      - "Redis__InstanceName=FiapCloudGames:"
     depends_on:
       fcg-db-central:
         condition: service_healthy 
