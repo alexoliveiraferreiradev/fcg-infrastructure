@@ -56,7 +56,7 @@ spec:
           timeoutSeconds: 5
         volumeMounts:
           - name: sql-storage
-            mountPath: /var/lib/sql 
+            mountPath: /var/lib/mssql 
       volumes:
         - name: sql-storage
           persistentVolumeClaim:
