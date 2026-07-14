@@ -22,6 +22,13 @@ spec:
         image: alexoliverdev/fcg-usuario-api:latest
         ports:
         - containerPort: 8080
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "300m"
+            memory: "256Mi"
         env:
           - name: RabbitMqSettings__Host
             valueFrom:

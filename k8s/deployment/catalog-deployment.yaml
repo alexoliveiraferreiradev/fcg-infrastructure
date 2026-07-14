@@ -22,6 +22,13 @@ spec:
         image: alexoliverdev/fcg-catalog-api:latest
         ports:
         - containerPort: 8080
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "300m"
+            memory: "256Mi"
         env:
           - name: DatabaseSettings__Host
             valueFrom:
@@ -83,22 +90,22 @@ spec:
               configMapKeyRef:
                 name: catalog-config
                 key: CATALOG_PAYMENT_PROCESSED_QUEUE
-          - name: Redis__Host
+          - name: RedisSettings__Host
             valueFrom:
               configMapKeyRef:
                 name: catalog-config
                 key: REDIS_SERVER
-          - name: Redis__Port
+          - name: RedisSettings__Port
             valueFrom:
               configMapKeyRef:
                 name: catalog-config
                 key: REDIS_PORT
-          - name: Redis__InstanceName
+          - name: RedisSettings__InstanceName
             valueFrom:
               configMapKeyRef:
                 name: catalog-config
                 key: REDIS_NAME
-          - name: Redis__Password
+          - name: RedisSettings__Password
             valueFrom:
               secretKeyRef:
                 name: catalog-opaque
