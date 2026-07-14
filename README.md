@@ -45,12 +45,17 @@ sequenceDiagram
     end
 ```
 
+> [!IMPORTANT]
+> **Resiliência e Proteção do Fluxo de Negócios:**
+> A comunicação entre os microsserviços está protegida contra indisponibilidades. Se um serviço consumidor (como a *Catalog API* ou a *Payments API*) estiver temporariamente fora do ar, o **MassTransit** aplicará políticas configuradas de **Retry** (retentativas). Caso o serviço continue inoperante e as tentativas se esgotem, a mensagem não será perdida, sendo enviada para uma **Dead-Letter Queue (DLQ)** no RabbitMQ. Isso garante que o fluxo de negócios não seja quebrado e que os eventos possam ser reprocessados quando o serviço for restabelecido.
+
 ---
 
 ## 🛠️ Stack Tecnológica de Infraestrutura
 
-*   **Banco de Dados:** SQL Server 2022 (para persistência de dados das APIs de Usuários e Catálogo).
+*   **Banco de Dados:** SQL Server 2022 (para persistência de dados das APIs de Usuários/Pagamentos e Catálogo).
 *   **Mensageria:** RabbitMQ 3 (Broker de eventos assíncronos com interface de gerência habilitada).
+*   **Cache Distribuído:** Redis (para otimização e cache de alto desempenho).
 *   **Orquestração Local:** Docker & Docker Compose.
 *   **Orquestração de Produção:** Kubernetes (manifestos locais configurados).
 
@@ -125,7 +130,7 @@ Uma vez inicializada a aplicação via Docker Compose, você poderá acessar os 
 
 ## ☸️ Guia de Implantação no Kubernetes (k8s)
 
-Os manifestos de orquestração do cluster Kubernetes local foram construídos de forma modular. A infraestrutura compartilhada (Banco de Dados, Redis, RabbitMQ) reside neste repositório `fcg-infrastructure`, enquanto os manifestos específicos de cada microsserviço encontram-se dentro de seus respectivos repositórios sob a pasta `/k8s`.
+Os manifestos de orquestração do cluster Kubernetes local foram centralizados neste repositório `fcg-infrastructure` e organizados em pastas para facilitar a implantação estruturada.
 
 ### Pré-requisitos
 *   Um cluster Kubernetes local rodando ([Docker Desktop Kubernetes](https://docs.docker.com/desktop/kubernetes/), [Minikube](https://minikube.sigs.k8s.io/), [Kind](https://kind.sigs.k8s.io/) ou [k3d](https://k3d.io/)).
@@ -133,51 +138,58 @@ Os manifestos de orquestração do cluster Kubernetes local foram construídos d
 
 ---
 
-### Passo 1: Implantar a Infraestrutura Compartilhada
-A partir da raiz do repositório `fcg-infrastructure`, aplique todos os manifestos de infraestrutura localizados na pasta `k8s`. Eles configurarão os Deployments, Services (ClusterIP), ConfigMaps, Secrets e volumes (PVCs) para o SQL Server, Redis e RabbitMQ:
+### Passo a Passo da Implantação
 
+A partir da raiz do repositório `fcg-infrastructure`, execute os comandos abaixo, aplicando as pastas na **exata ordem descrita**, para garantir a inicialização correta de todos os recursos:
+
+**1. Configs (ConfigMaps/Secrets):**
 ```bash
-kubectl apply -f k8s/
+kubectl apply -f k8s/configs/
 ```
 
-Você pode verificar se a infraestrutura subiu corretamente com:
+> [!WARNING]
+>Como este é um projeto acadêmico (Tech Challenge), os arquivos Secret foram intencionalmente versionados com seus valores em base64 para facilitar a execução e a avaliação do professor no cluster local.
+
+
+**2. Infra (Redis/Rabbit/Sql):**
 ```bash
-kubectl get pods
+kubectl apply -f k8s/infra/
 ```
-Aguarde até que os pods do SQL Server, Redis e RabbitMQ estejam no status `Running`.
+
+**3. Aguardar o pod de SQL estar pronto:**
+Verifique o status dos pods. É fundamental aguardar o pod de banco de dados estar com o status `1/1` e `Running` antes de prosseguir.
+```bash
+kubectl get pods -w
+```
+*(Aperte `Ctrl+C` para sair do watch após o banco de dados inicializar)*
+
+**4. Services:**
+```bash
+kubectl apply -f k8s/services/
+```
+
+**5. Jobs (Migrations):**
+Execute as migrations para criar e popular o banco de dados.
+```bash
+kubectl apply -f k8s/jobs/
+```
+
+**6. Aguardar as migrations serem realizadas:**
+Acompanhe os pods de migrations. Eles devem executar e atingir o status `Completed`.
+```bash
+kubectl get pods -w
+```
+*(Não prossiga para o próximo passo antes que todas as migrations tenham sido concluídas com sucesso. Aperte `Ctrl+C` para sair do watch).*
+
+**7. Deployment:**
+Por fim, faça o deploy dos microsserviços do ecossistema.
+```bash
+kubectl apply -f k8s/deployment/
+```
 
 ---
 
-### Passo 2: Implantar os Microsserviços do Ecossistema
-Navegue até a pasta de cada um dos microsserviços clonados em sua máquina e aplique os manifestos Kubernetes de cada um deles utilizando o comando `kubectl apply -f k8s/`.
-
-Assumindo que os repositórios estão no mesmo diretório pai:
-
-```bash
-# 1. Implantar Microsserviço de Usuários (Users API)
-cd ../fcg-usuario-api
-kubectl apply -f k8s/
-
-# 2. Implantar Microsserviço de Catálogo (Catalog API)
-cd ../fcg-catalog-api
-kubectl apply -f k8s/
-
-# 3. Implantar Microsserviço de Pagamentos (Payments API)
-cd ../fcg-payments-api
-kubectl apply -f k8s/
-
-# 4. Implantar Microsserviço de Notificações (Notifications API)
-cd ../fcg-notifications-api
-kubectl apply -f k8s/
-```
-
-> [!IMPORTANT]
-> **Execução Automatizada de Migrações no Kubernetes:**
-> Como o SQL Server subirá inicialmente vazio no cluster, a criação de esquemas e o seeding de dados iniciais são gerenciados de forma totalmente automatizada no Kubernetes. Os manifestos de implantação das APIs (`Users`, `Catalog`, `Payments`) possuem **Init Containers** (`initContainers`) configurados com os bundles de migração do Entity Framework Core (`efbundle`). Quando o deployment de um microsserviço é aplicado, o Kubernetes executa a migração correspondente em primeiro plano e, somente após seu término bem-sucedido, inicializa o contêiner principal da API HTTP. Isso garante integridade do banco sem necessidade de intervenção humana.
-
----
-
-### Passo 3: Monitorar e Validar a Implantação
+### Monitorar e Validar a Implantação
 Monitore a criação dos pods até que todos os microsserviços estejam em execução estável (`Running`):
 
 ```bash
