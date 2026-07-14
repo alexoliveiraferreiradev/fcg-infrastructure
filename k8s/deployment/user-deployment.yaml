@@ -1,0 +1,122 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fcg-users-api-deployment
+  labels:
+    app: fcg-users-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: fcg-users-api
+  template:
+    metadata:
+      labels: 
+        app: fcg-users-api
+      annotations:
+        autor: Alex O Ferreira
+        description: "Deployment do microsservico de Usuarios API do Fiap Cloud Games"
+    spec:
+      initContainers:
+      - name: c-users-db-migration
+        image: alexoliverdev/fcg-usuario-api:latest     
+        command: ["./efbundle"]   
+        env:
+          - name: DatabaseSettings__Host
+            valueFrom:
+              configMapKeyRef:
+                name: user-config
+                key: DB_SERVER
+          - name: DatabaseSettings__Port
+            valueFrom:
+              configMapKeyRef:
+                name: user-config
+                key: DB_PORT
+          - name: DatabaseSettings__DatabaseName
+            valueFrom:
+              configMapKeyRef:
+                name: user-config
+                key: DB_NAME
+          - name: DatabaseSettings__Username
+            valueFrom:
+              secretKeyRef:
+                name: user-opaque
+                key: DB_USER
+          - name: DatabaseSettings__Password
+            valueFrom:
+              secretKeyRef:
+                name: user-opaque
+                key: DB_PASS
+      containers:
+      - name: c-fcg-users-api
+        image: alexoliverdev/fcg-usuario-api:latest
+        ports:
+        - containerPort: 8080
+        env:
+          - name: RabbitMqSettings__Host
+            valueFrom:
+              configMapKeyRef:
+                name: user-config
+                key: RABBITMQ_SERVER
+          - name: RabbitMqSettings__Port
+            valueFrom:
+              configMapKeyRef:
+                name: user-config
+                key: RABBITMQ_PORT
+          - name: RabbitMqSettings__Username
+            valueFrom:
+              secretKeyRef:
+                name: user-opaque
+                key: RABBITMQ_USER
+          - name: RabbitMqSettings__Password
+            valueFrom:
+              secretKeyRef:
+                name: user-opaque
+                key: RABBITMQ_PASS
+          - name: DatabaseSettings__Host
+            valueFrom:
+              configMapKeyRef:
+                name: user-config
+                key: DB_SERVER
+          - name: DatabaseSettings__DatabaseName
+            valueFrom:
+              configMapKeyRef:
+                name: user-config
+                key: DB_NAME
+          - name: DatabaseSettings__Port
+            valueFrom:
+              configMapKeyRef:
+                name: user-config
+                key: DB_PORT         
+          - name: ASPNETCORE_ENVIRONMENT
+            valueFrom:
+              configMapKeyRef:
+                name: user-config
+                key: ENVIRONMENT
+          - name: DatabaseSettings__Username
+            valueFrom:
+              secretKeyRef:
+                name: user-opaque
+                key: DB_USER
+          - name: DatabaseSettings__Password
+            valueFrom:
+              secretKeyRef:
+                name: user-opaque
+                key: DB_PASS
+          - name: JwtSettings__Secret
+            valueFrom:
+              secretKeyRef:
+                name: user-opaque
+                key: JWT_SECRET         
+        livenessProbe:
+          httpGet:
+            path: /health/liveness
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health/readiness
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 5

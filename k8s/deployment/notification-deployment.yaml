@@ -1,0 +1,108 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fcg-notification-api-deployment
+  labels:
+    app: fcg-notification-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: fcg-notification-api
+  template:
+    metadata:
+      labels: 
+        app: fcg-notification-api
+      annotations:
+        autor: Alex O Ferreira
+        description: "Deployment do microsservico de Notificações API do Fiap Cloud Games"
+    spec:      
+      containers:
+      - name: c-fcg-notifications-api
+        image: alexoliverdev/fcg-notification-api:latest
+        ports:
+        - containerPort: 8080
+        env:
+          - name: RabbitMqSettings__Host
+            valueFrom:
+              configMapKeyRef:
+                name: notification-config
+                key: RABBITMQ_SERVER
+          - name: RabbitMqSettings__Port
+            valueFrom:
+              configMapKeyRef:
+                name: notification-config
+                key: RABBITMQ_PORT
+          - name: RabbitMqSettings__NotificationUserCreatedQueue
+            valueFrom:
+              configMapKeyRef:
+                name: notification-config
+                key: NOTIFICATION_USER_CREATED_QUEUE
+          - name: RabbitMqSettings__NotificationPaymentFailedQueue
+            valueFrom:
+              configMapKeyRef:
+                name: notification-config
+                key: NOTIFICATION_PAYMENT_FAILED_QUEUE
+          - name: RabbitMqSettings__NotificationPaymentProcessedQueue
+            valueFrom:
+              configMapKeyRef:
+                name: notification-config
+                key: NOTIFICATION_PAYMENT_PROCESSED_QUEUE
+          - name: RabbitMqSettings__NotificationDeliveryFailedQueue
+            valueFrom:
+              configMapKeyRef:
+                name: notification-config
+                key: NOTIFICATION_DELIVERY_FAILED_QUEUE
+          - name: RabbitMqSettings__Password
+            valueFrom:
+              secretKeyRef:
+                name: notification-opaque
+                key: RABBITMQ_PASS
+          - name: Redis__Host
+            valueFrom:
+              configMapKeyRef:
+                name: notification-config
+                key: REDIS_SERVER
+          - name: Redis__Port
+            valueFrom:
+              configMapKeyRef:
+                name: notification-config
+                key: REDIS_PORT
+          - name: Redis__InstanceName
+            valueFrom:
+              configMapKeyRef:
+                name: notification-config
+                key: REDIS_NAME
+          - name: K8S_MASSTELEMETRY
+            valueFrom:
+              configMapKeyRef:
+                name: notification-config
+                key: MASSTRANSIT_USAGE_TELEMETRY
+          - name: ASPNETCORE_ENVIRONMENT
+            valueFrom:
+              configMapKeyRef:
+                name: notification-config
+                key: ENVIRONMENT
+          - name: RabbitMqSettings__Username
+            valueFrom:
+              secretKeyRef:
+                name: notification-opaque
+                key: RABBITMQ_USER
+          - name: Redis__Password
+            valueFrom:
+              secretKeyRef:
+                name: notification-opaque
+                key: REDIS_PASS         
+        livenessProbe:
+          httpGet:
+            path: /health/liveness
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health/readiness
+            port: 8080
+          initialDelaySeconds: 30 
+          periodSeconds: 10
+          failureThreshold: 6

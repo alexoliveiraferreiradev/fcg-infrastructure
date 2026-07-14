@@ -1,0 +1,152 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fcg-catalog-api-deployment
+  labels:
+    app: fcg-catalog-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: fcg-catalog-api
+  template:
+    metadata:
+      labels: 
+        app: fcg-catalog-api
+      annotations:
+        autor: Alex O Ferreira
+        description: "Deployment do microsservico de Catalogo API do Fiap Cloud Games"
+    spec:
+      initContainers:
+      - name: c-catalog-db-migration
+        image: alexoliverdev/fcg-catalog-api:latest     
+        command: ["./efbundle"]   
+        env:
+          - name: DatabaseSettings__Host
+            valueFrom:
+              configMapKeyRef:
+                name: catalog-config
+                key: DB_SERVER
+          - name: DatabaseSettings__Port
+            valueFrom:
+              configMapKeyRef:
+                name: catalog-config
+                key: DB_PORT
+          - name: DatabaseSettings__DatabaseName
+            valueFrom:
+              configMapKeyRef:
+                name: catalog-config
+                key: DB_NAME
+          - name: DatabaseSettings__Username
+            valueFrom:
+              secretKeyRef:
+                name: catalog-opaque
+                key: DB_USER
+          - name: DatabaseSettings__Password
+            valueFrom:
+              secretKeyRef:
+                name: catalog-opaque
+                key: DB_PASS                    
+      containers:
+      - name: c-fcg-catalog-api
+        image: alexoliverdev/fcg-catalog-api:latest
+        ports:
+        - containerPort: 8080
+        env:
+          - name: DatabaseSettings__Host
+            valueFrom:
+              configMapKeyRef:
+                name: catalog-config
+                key: DB_SERVER
+          - name: DatabaseSettings__DatabaseName
+            valueFrom:
+              configMapKeyRef:
+                name: catalog-config
+                key: DB_NAME
+          - name: DatabaseSettings__Port
+            valueFrom:
+              configMapKeyRef:
+                name: catalog-config
+                key: DB_PORT          
+          - name: DatabaseSettings__Username
+            valueFrom:
+              secretKeyRef:
+                name: catalog-opaque
+                key: DB_USER
+          - name: DatabaseSettings__Password
+            valueFrom:
+              secretKeyRef:
+                name: catalog-opaque
+                key: DB_PASS
+          - name: ASPNETCORE_ENVIRONMENT
+            valueFrom:
+              configMapKeyRef:
+                name: catalog-config
+                key: ENVIRONMENT
+          - name: RabbitMqSettings__Host
+            valueFrom:
+              configMapKeyRef:
+                name: catalog-config
+                key: RABBITMQ_SERVER
+          - name: RabbitMqSettings__Port
+            valueFrom:
+              configMapKeyRef:
+                name: catalog-config
+                key: RABBITMQ_PORT
+          - name: RabbitMqSettings__Username
+            valueFrom:
+              secretKeyRef:
+                name: catalog-opaque
+                key: RABBITMQ_USER
+          - name: RabbitMqSettings__Password
+            valueFrom:
+              secretKeyRef:
+                name: catalog-opaque
+                key: RABBITMQ_PASS
+          - name: RabbitMqSettings__CatalogPaymentFailedQueue
+            valueFrom:
+              configMapKeyRef:
+                name: catalog-config
+                key: CATALOG_PAYMENT_FAILED_QUEUE
+          - name: RabbitMqSettings__CatalogPaymentProcessedQueue
+            valueFrom:
+              configMapKeyRef:
+                name: catalog-config
+                key: CATALOG_PAYMENT_PROCESSED_QUEUE
+          - name: Redis__Host
+            valueFrom:
+              configMapKeyRef:
+                name: catalog-config
+                key: REDIS_SERVER
+          - name: Redis__Port
+            valueFrom:
+              configMapKeyRef:
+                name: catalog-config
+                key: REDIS_PORT
+          - name: Redis__InstanceName
+            valueFrom:
+              configMapKeyRef:
+                name: catalog-config
+                key: REDIS_NAME
+          - name: Redis__Password
+            valueFrom:
+              secretKeyRef:
+                name: catalog-opaque
+                key: REDIS_PASS
+          - name: JwtSettings__Secret
+            valueFrom:
+              secretKeyRef:
+                name: catalog-opaque
+                key: JWT_SECRET
+        livenessProbe:
+          httpGet:
+            path: /health/liveness
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health/readiness
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 5

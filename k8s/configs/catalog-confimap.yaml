@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: catalog-config
+data:
+  DB_SERVER: sql-service
+  DB_PORT: "1433"
+  DB_NAME: "Fcg_Catalogs"
+  DB_TRUST_CERT: "True"
+  RABBITMQ_SERVER: rabbitmq-service
+  RABBITMQ_PORT: "5672"
+  CATALOG_PAYMENT_FAILED_QUEUE: "catalog-payment-failed-queue"
+  CATALOG_PAYMENT_PROCESSED_QUEUE: "catalog-payment-processed-queue"
+  REDIS_SERVER: redis-service
+  REDIS_PORT: "6379" 
+  REDIS_NAME: "FiapCloudGames:" 
+  ENVIRONMENT: "Development"

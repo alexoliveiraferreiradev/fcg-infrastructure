@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-config
+data:
+  DB_SERVER: sql-service
+  DB_PORT: "1433"
+  DB_NAME: "Fcg_Users"
+  DB_TRUST_CERT: "True"
+  RABBITMQ_SERVER: rabbitmq-service
+  RABBITMQ_PORT: "5672"
+  ENVIRONMENT: "Development"
