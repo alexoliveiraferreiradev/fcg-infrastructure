@@ -30,6 +30,11 @@ services:
       - rabbitmq_data:/var/lib/rabbitmq
     networks:
       - fcg-network
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
@@ -39,6 +44,11 @@ services:
     command: redis-server --appendonly yes --requirepass ${REDIS_SA_PASSWORD}
     container_name: redis-fcg
     restart: unless-stopped 
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     ports:
       - "6379:6379"
     networks:
@@ -59,13 +69,13 @@ services:
     depends_on:
       fcg-db-central:
         condition: service_healthy
+    command: ["./efbundle"]
     environment:
       - DatabaseSettings__Host=fcg-db-central
       - DatabaseSettings__Port=1433
       - DatabaseSettings__DatabaseName=Fcg_Users
       - DatabaseSettings__Username=sa
-      - DatabaseSettings__Password=${MSSQL_SA_PASSWORD}
-    entrypoint: ["./efbundle", "--connection", "Server=fcg-db-central;Database=Fcg_Users;User Id=sa; Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;"]
+      - DatabaseSettings__Password=${MSSQL_SA_PASSWORD}    
     networks:
       - fcg-network
 
@@ -105,14 +115,14 @@ services:
       - "8082:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - RabbitMqQueues__NotificationUserCreatedQueue=notifications-user-created
-      - RabbitMqQueues__NotificationPaymentFailedQueue=notifications-payment-failed
-      - RabbitMqQueues__NotificationPaymentProcessedQueue=notifications-payment-processed
-      - RabbitMqQueues__NotificationDeliveryFailedQueue=notification-delivery-failed
-      - RabbitMqQueues__Host=rabbitmq
-      - RabbitMqQueues__Port=5672
-      - RabbitMqQueues__Username=guest
-      - RabbitMqQueues__Password=guest
+      - RabbitMqSettings__NotificationUserCreatedQueue=notifications-user-created
+      - RabbitMqSettings__NotificationPaymentFailedQueue=notifications-payment-failed
+      - RabbitMqSettings__NotificationPaymentProcessedQueue=notifications-payment-processed
+      - RabbitMqSettings__NotificationDeliveryFailedQueue=notification-delivery-failed
+      - RabbitMqSettings__Host=rabbitmq
+      - RabbitMqSettings__Port=5672
+      - RabbitMqSettings__Username=guest
+      - RabbitMqSettings__Password=guest
       - Redis__Host=redis
       - Redis__Port=6379
       - Redis__Password=${REDIS_SA_PASSWORD}
@@ -121,7 +131,7 @@ services:
     depends_on:
       redis:
         condition: service_started
-      users-api:
+      rabbitmq:
         condition: service_started
     networks:
       - fcg-network
@@ -132,13 +142,13 @@ services:
     depends_on:
       fcg-db-central:
         condition: service_healthy
+    command: ["./efbundle"]
     environment:
       - DatabaseSettings__Host=fcg-db-central
       - DatabaseSettings__Port=1433
       - DatabaseSettings__DatabaseName=Fcg_Payments
       - DatabaseSettings__Username=sa
-      - DatabaseSettings__Password=${MSSQL_SA_PASSWORD}
-    entrypoint: ["./efbundle", "--connection", "Server=fcg-db-central;Database=Fcg_Payments;User Id=sa; Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;"]
+      - DatabaseSettings__Password=${MSSQL_SA_PASSWORD}    
     networks:
       - fcg-network
 
@@ -165,9 +175,7 @@ services:
       fcg-db-central:
         condition: service_healthy 
       rabbitmq:
-        condition: service_started
-      catalog-api:
-        condition: service_started
+        condition: service_started     
       payments-db-migration:
         condition: service_completed_successfully
     networks:
@@ -179,13 +187,13 @@ services:
     depends_on:
       fcg-db-central:
         condition: service_healthy
+    command: ["./efbundle"]
     environment:
       - DatabaseSettings__Host=fcg-db-central
       - DatabaseSettings__Port=1433
       - DatabaseSettings__DatabaseName=Fcg_Catalogs
       - DatabaseSettings__Username=sa
-      - DatabaseSettings__Password=${MSSQL_SA_PASSWORD}
-    entrypoint: ["./efbundle", "--connection", "Server=fcg-db-central;Database=Fcg_Catalogs;User Id=sa; Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;"]
+      - DatabaseSettings__Password=${MSSQL_SA_PASSWORD}    
     networks:
       - fcg-network
 
@@ -218,9 +226,7 @@ services:
       rabbitmq:
         condition: service_started
       redis:
-        condition: service_started
-      users-api:
-        condition: service_started
+        condition: service_started     
       catalog-db-migration:
         condition: service_completed_successfully
     networks:
