@@ -29,7 +29,7 @@ services:
     networks:
       - fcg-network
     healthcheck:
-      test: rabbitmq-diagnostics -q ping
+      test: rabbitmq-diagnostics check_port_connectivity
       interval: 10s
       timeout: 5s
       retries: 5
@@ -121,10 +121,10 @@ services:
       - RabbitMqSettings__Port=5672
       - RabbitMqSettings__Username=guest
       - RabbitMqSettings__Password=guest
-      - Redis__Host=redis
-      - Redis__Port=6379
-      - Redis__Password=${REDIS_SA_PASSWORD}
-      - "Redis__InstanceName=FiapCloudGames:"
+      - RedisSettings__Host=redis
+      - RedisSettings__Port=6379
+      - RedisSettings__Password=${REDIS_SA_PASSWORD}
+      - "RedisSettings__InstanceName=FiapCloudGames:"
       - MASSTRANSIT_USAGE_TELEMETRY=false
     depends_on:
       redis:
