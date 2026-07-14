@@ -1,0 +1,48 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: fcg-payments-db-migration
+  labels:
+    app: fcg-payments-migration
+spec:
+  backoffLimit: 3 
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: migration-payment-runner
+        image: alexoliverdev/fcg-payments-api:latest
+        command: ["./efbundle"]
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "300m"
+            memory: "256Mi"
+        env:
+          - name: DatabaseSettings__Host
+            valueFrom:
+              configMapKeyRef:
+                name: payment-config
+                key: DB_SERVER
+          - name: DatabaseSettings__Port
+            valueFrom:
+              configMapKeyRef:
+                name: payment-config
+                key: DB_PORT
+          - name: DatabaseSettings__DatabaseName
+            valueFrom:
+              configMapKeyRef:
+                name: payment-config
+                key: DB_NAME
+          - name: DatabaseSettings__Username
+            valueFrom:
+              secretKeyRef:
+                name: payment-opaque
+                key: DB_USER
+          - name: DatabaseSettings__Password
+            valueFrom:
+              secretKeyRef:
+                name: payment-opaque
+                key: DB_PASS

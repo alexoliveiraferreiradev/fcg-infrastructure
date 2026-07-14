@@ -16,37 +16,7 @@ spec:
       annotations:
         autor: Alex O Ferreira
         description: "Deployment do microsservico de Pagamentos API do Fiap Cloud Games"
-    spec:
-      initContainers:
-      - name: c-payments-db-migration
-        image: alexoliverdev/fcg-payments-api:latest  
-        command: ["./efbundle"]   
-        env:
-          - name: DatabaseSettings__Host
-            valueFrom:
-              configMapKeyRef:
-                name: payment-config
-                key: DB_SERVER
-          - name: DatabaseSettings__Port
-            valueFrom:
-              configMapKeyRef:
-                name: payment-config
-                key: DB_PORT
-          - name: DatabaseSettings__DatabaseName
-            valueFrom:
-              configMapKeyRef:
-                name: payment-config
-                key: DB_NAME
-          - name: DatabaseSettings__Username
-            valueFrom:
-              secretKeyRef:
-                name: payment-opaque
-                key: DB_USER
-          - name: DatabaseSettings__Password
-            valueFrom:
-              secretKeyRef:
-                name: payment-opaque
-                key: DB_PASS                 
+    spec:                  
       containers:
       - name: c-fcg-payments-api
         image:  alexoliverdev/fcg-payments-api:latest  
