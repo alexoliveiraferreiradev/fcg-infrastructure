@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   fcg-db-central:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -100,9 +98,9 @@ services:
       fcg-db-central:
         condition: service_healthy 
       redis:
-        condition: service_started
+        condition: service_healthy
       rabbitmq:
-        condition: service_started
+        condition: service_healthy
       users-db-migration:
         condition: service_completed_successfully
     networks:
@@ -130,9 +128,9 @@ services:
       - MASSTRANSIT_USAGE_TELEMETRY=false
     depends_on:
       redis:
-        condition: service_started
+        condition: service_healthy
       rabbitmq:
-        condition: service_started
+        condition: service_healthy
     networks:
       - fcg-network
 
@@ -175,7 +173,7 @@ services:
       fcg-db-central:
         condition: service_healthy 
       rabbitmq:
-        condition: service_started     
+        condition: service_healthy     
       payments-db-migration:
         condition: service_completed_successfully
     networks:
@@ -224,9 +222,9 @@ services:
       fcg-db-central:
         condition: service_healthy 
       rabbitmq:
-        condition: service_started
+        condition: service_healthy
       redis:
-        condition: service_started     
+        condition: service_healthy     
       catalog-db-migration:
         condition: service_completed_successfully
     networks:
